@@ -11,7 +11,7 @@ import Combine
 struct ImportHistoryView: View {
     @ObservedObject var historyManager: ImportHistoryManager
     @Environment(\.dismiss) private var dismiss
-    @State private var showingClearConfirmation = false
+    @State private var showingClearSheet = false
     
     var body: some View {
         NavigationStack {
@@ -34,19 +34,22 @@ struct ImportHistoryView: View {
                 if !historyManager.records.isEmpty {
                     ToolbarItem(placement: .navigationBarTrailing) {
                         Button("Clear") {
-                            showingClearConfirmation = true
+                            showingClearSheet = true
                         }
                         .foregroundColor(.red)
                     }
                 }
             }
-            .confirmationDialog("Clear History", isPresented: $showingClearConfirmation) {
-                Button("Clear All History", role: .destructive) {
-                    historyManager.clearHistory()
-                }
-                Button("Cancel", role: .cancel) { }
-            } message: {
-                Text("This will remove all import history. This action cannot be undone.")
+            .sheet(isPresented: $showingClearSheet) {
+                ClearHistorySheet(
+                    onClear: {
+                        historyManager.clearHistory()
+                        showingClearSheet = false
+                    },
+                    onCancel: {
+                        showingClearSheet = false
+                    }
+                )
             }
         }
     }
@@ -111,6 +114,69 @@ struct ImportHistoryView: View {
             .padding(.vertical, 4)
         }
         .listStyle(PlainListStyle())
+    }
+}
+
+struct ClearHistorySheet: View {
+    let onClear: () -> Void
+    let onCancel: () -> Void
+    
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 24) {
+                Spacer()
+                
+                VStack(spacing: 16) {
+                    Image(systemName: "trash.fill")
+                        .font(.system(size: 60))
+                        .foregroundColor(.red)
+                    
+                    Text("Clear All History")
+                        .font(.title2)
+                        .fontWeight(.semibold)
+                    
+                    Text("This will remove all import history. This action cannot be undone.")
+                        .font(.body)
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal)
+                }
+                
+                Spacer()
+                
+                VStack(spacing: 12) {
+                    Button(action: onClear) {
+                        Text("Clear All History")
+                            .font(.headline)
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity, minHeight: 50)
+                            .background(Color.red)
+                            .cornerRadius(8)
+                    }
+                    
+                    Button(action: onCancel) {
+                        Text("Cancel")
+                            .font(.headline)
+                            .foregroundColor(.primary)
+                            .frame(maxWidth: .infinity, minHeight: 50)
+                            .background(Color(.secondarySystemBackground))
+                            .cornerRadius(8)
+                    }
+                }
+                .padding(.horizontal, 20)
+                .padding(.bottom, 20)
+            }
+            .navigationTitle("Clear History")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Cancel") {
+                        onCancel()
+                    }
+                }
+            }
+        }
+        .presentationDetents([.medium])
     }
 }
 

@@ -101,6 +101,7 @@ struct HealthKitAuthorizationView: View {
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 8)
         }
+        .padding(.horizontal, 20)
         .alert("Authorization Error", isPresented: $showingError) {
             Button("OK") { }
         } message: {

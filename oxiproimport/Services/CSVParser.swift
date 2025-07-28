@@ -13,7 +13,10 @@ class CSVParser {
             throw CSVParsingError.emptyFile
         }
         
-        let lines = csvString.components(separatedBy: .newlines)
+        // Remove BOM (Byte Order Mark) if present
+        let cleanedCSVString = csvString.hasPrefix("\u{FEFF}") ? String(csvString.dropFirst()) : csvString
+        
+        let lines = cleanedCSVString.components(separatedBy: .newlines)
             .filter { !$0.isEmpty }
         
         guard lines.count > 1 else {
