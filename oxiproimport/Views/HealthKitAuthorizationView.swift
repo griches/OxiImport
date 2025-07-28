@@ -114,6 +114,16 @@ struct HealthKitAuthorizationView: View {
         Task {
             do {
                 try await healthKitManager.requestAuthorization()
+                
+                await MainActor.run {
+                    isRequesting = false
+                    
+                    // If still not authorized after request, show message
+                    if !healthKitManager.isAuthorized {
+                        errorMessage = "Please enable all permissions in the Health app for this feature to work properly."
+                        showingError = true
+                    }
+                }
             } catch {
                 await MainActor.run {
                     errorMessage = error.localizedDescription
