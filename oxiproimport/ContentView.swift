@@ -194,40 +194,50 @@ struct ContentView: View {
     private var importHistorySection: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text("Recent Imports")
+                Text("Recent Readings")
                     .font(.headline)
+                    .foregroundColor(.primary)
                 
                 Spacer()
                 
-                Button("View All") {
+                Button("Import History") {
                     showingHistory = true
                 }
                 .font(.caption)
                 .foregroundColor(.accentColor)
             }
             
-            ScrollView {
-                VStack(spacing: 8) {
-                    ForEach(historyManager.records.prefix(5)) { record in
+            VStack(spacing: 8) {
+                // Get all recent readings from successful imports
+                let recentReadings = historyManager.records
+                    .filter { $0.success }
+                    .prefix(5)
+                    .flatMap { $0.readings ?? [] }
+                    .sorted { $0.date > $1.date }
+                    .prefix(5)
+                
+                if recentReadings.isEmpty {
+                    Text("No readings imported yet")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .padding(.vertical, 20)
+                } else {
+                    ForEach(Array(recentReadings), id: \.id) { reading in
                         HStack {
                             VStack(alignment: .leading, spacing: 4) {
-                                Text(record.fileName)
-                                    .font(.subheadline)
-                                    .fontWeight(.medium)
-                                    .lineLimit(1)
-                                
-                                Text(record.importDateString)
+                                Text(reading.dateTimeString)
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                                 
                                 HStack(spacing: 12) {
-                                    Label("\(record.readingsCount) readings", systemImage: "doc.text")
-                                        .font(.caption2)
-                                        .foregroundColor(.secondary)
+                                    Text(reading.bloodPressureString)
+                                        .font(.system(size: 18, weight: .semibold))
+                                        .foregroundColor(.primary)
                                     
-                                    if record.dateRange != "N/A" {
-                                        Label(record.dateRange, systemImage: "calendar")
-                                            .font(.caption2)
+                                    if let pulse = reading.pulse {
+                                        Text("\(pulse) bpm")
+                                            .font(.subheadline)
                                             .foregroundColor(.secondary)
                                     }
                                 }
@@ -235,30 +245,25 @@ struct ContentView: View {
                             
                             Spacer()
                             
-                            Image(systemName: record.success ? "checkmark.circle.fill" : "xmark.circle.fill")
-                                .foregroundColor(record.success ? .green : .red)
-                                .imageScale(.medium)
+                            if reading.irregularPulseDetected {
+                                Image(systemName: "waveform.path.ecg.rectangle")
+                                    .foregroundColor(.orange)
+                                    .imageScale(.small)
+                            }
                         }
-                        .padding(.vertical, 8)
+                        .padding(.vertical, 10)
                         .padding(.horizontal, 12)
-                        .background(Color(.systemGray6))
-                        .cornerRadius(6)
-                        
-                        if let error = record.errorMessage {
-                            Text(error)
-                                .font(.caption2)
-                                .foregroundColor(.red)
-                                .padding(.horizontal, 12)
-                                .padding(.bottom, 4)
-                        }
+                        .background(Color(.tertiarySystemBackground))
+                        .cornerRadius(8)
                     }
                 }
             }
-            .frame(maxHeight: 300)
         }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(8)
+        .padding(20)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color(.secondarySystemBackground))
+        )
     }
     
     private var emptyStateSection: some View {

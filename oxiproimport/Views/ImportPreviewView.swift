@@ -25,6 +25,7 @@ struct ImportPreviewView: View {
                     previewContent
                 }
             }
+            .background(Color(.systemBackground))
             .navigationTitle("Import Preview")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -33,6 +34,7 @@ struct ImportPreviewView: View {
                         dismiss()
                     }
                     .disabled(isImporting)
+                    .fontWeight(.medium)
                 }
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
@@ -40,103 +42,145 @@ struct ImportPreviewView: View {
                         startImport()
                     }
                     .disabled(isImporting)
+                    .fontWeight(.semibold)
                 }
             }
         }
     }
     
     private var previewContent: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(spacing: 0) {
             summarySection
-            
-            Divider()
-            
             readingsList
         }
     }
     
     private var summarySection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Label("\(readings.count) readings to import", systemImage: "doc.text.fill")
-                .font(.headline)
+        VStack(alignment: .leading, spacing: 16) {
+            HStack(spacing: 12) {
+                Image(systemName: "doc.text.fill")
+                    .font(.system(size: 18))
+                    .foregroundColor(.primary.opacity(0.8))
+                    .frame(width: 24)
+                Text("\(readings.count) readings to import")
+                    .font(.headline)
+                    .foregroundColor(.primary)
+                Spacer()
+            }
             
             if let firstDate = readings.last?.date,
                let lastDate = readings.first?.date {
-                Label(dateRangeText(from: firstDate, to: lastDate), systemImage: "calendar")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
+                HStack(spacing: 12) {
+                    Image(systemName: "calendar")
+                        .font(.system(size: 18))
+                        .foregroundColor(.primary.opacity(0.8))
+                        .frame(width: 24)
+                    Text(dateRangeText(from: firstDate, to: lastDate))
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    Spacer()
+                }
             }
             
             if let avgSystolic = averageSystolic,
                let avgDiastolic = averageDiastolic {
-                Label("Average: \(Int(avgSystolic))/\(Int(avgDiastolic)) mmHg", systemImage: "heart.fill")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
+                HStack(spacing: 12) {
+                    Image(systemName: "heart.fill")
+                        .font(.system(size: 18))
+                        .foregroundColor(.red.opacity(0.8))
+                        .frame(width: 24)
+                    Text("Average: \(Int(avgSystolic))/\(Int(avgDiastolic)) mmHg")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    Spacer()
+                }
             }
         }
-        .padding()
+        .padding(20)
+        .background(Color(.secondarySystemBackground))
     }
     
     private var readingsList: some View {
-        List(readings) { reading in
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(reading.dateTimeString)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    
-                    HStack(spacing: 16) {
-                        Text(reading.bloodPressureString)
-                            .font(.headline)
+        ScrollView {
+            VStack(spacing: 0) {
+                ForEach(readings) { reading in
+                    VStack(spacing: 0) {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text(reading.dateTimeString)
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                
+                                HStack(spacing: 16) {
+                                    Text(reading.bloodPressureString)
+                                        .font(.system(size: 20, weight: .semibold))
+                                        .foregroundColor(.primary)
+                                    
+                                    if let _ = reading.pulse {
+                                        Text(reading.pulseString)
+                                            .font(.system(size: 16))
+                                            .foregroundColor(.secondary)
+                                    }
+                                }
+                            }
+                            
+                            Spacer()
+                            
+                            if reading.irregularPulseDetected {
+                                Image(systemName: "waveform.path.ecg.rectangle")
+                                    .foregroundColor(.orange)
+                                    .font(.system(size: 20))
+                            }
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 16)
                         
-                        if let _ = reading.pulse {
-                            Text(reading.pulseString)
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
+                        if reading.id != readings.last?.id {
+                            Divider()
+                                .padding(.leading, 20)
                         }
                     }
                 }
-                
-                Spacer()
-                
-                if reading.irregularPulseDetected {
-                    Image(systemName: "waveform.path.ecg.rectangle")
-                        .foregroundColor(.orange)
-                        .imageScale(.small)
-                }
             }
-            .padding(.vertical, 4)
         }
-        .listStyle(PlainListStyle())
+        .background(Color(.systemBackground))
     }
     
     private var importingView: some View {
-        VStack(spacing: 24) {
+        VStack(spacing: 32) {
             Spacer()
             
-            Image(systemName: "arrow.down.doc.fill")
-                .font(.system(size: 60))
-                .foregroundColor(.accentColor)
-            
-            Text("Importing to Apple Health")
-                .font(.title2)
-                .fontWeight(.semibold)
-            
-            ProgressView(value: importProgress) {
-                Text("\(Int(importProgress * 100))% Complete")
-                    .font(.caption)
+            VStack(spacing: 24) {
+                Image(systemName: "arrow.down.doc.fill")
+                    .font(.system(size: 60))
+                    .foregroundColor(.blue)
+                    .symbolEffect(.pulse)
+                
+                Text("Importing to Apple Health")
+                    .font(.title2)
+                    .fontWeight(.medium)
+                    .foregroundColor(.primary)
+                
+                VStack(spacing: 12) {
+                    ProgressView(value: importProgress)
+                        .progressViewStyle(LinearProgressViewStyle(tint: .blue))
+                        .scaleEffect(y: 1.5)
+                    
+                    Text("\(Int(importProgress * 100))% Complete")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                .padding(.horizontal, 60)
+                
+                Text("\(Int(importProgress * Double(readings.count))) of \(readings.count) readings imported")
+                    .font(.subheadline)
                     .foregroundColor(.secondary)
             }
-            .progressViewStyle(LinearProgressViewStyle())
-            .padding(.horizontal, 40)
-            
-            Text("\(Int(importProgress * Double(readings.count))) of \(readings.count) readings imported")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
             
             Spacer()
         }
-        .padding()
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color(.systemBackground))
     }
     
     private var averageSystolic: Double? {

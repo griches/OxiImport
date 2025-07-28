@@ -16,6 +16,7 @@ struct ImportRecord: Identifiable, Codable {
     let dateRange: String
     let success: Bool
     let errorMessage: String?
+    let readings: [BloodPressureReading]?
     
     var importDateString: String {
         let formatter = DateFormatter()
@@ -53,7 +54,8 @@ class ImportHistoryManager: ObservableObject {
             readingsCount: readings.count,
             dateRange: dateRange,
             success: success,
-            errorMessage: error
+            errorMessage: error,
+            readings: success ? readings : nil
         )
         
         records.insert(record, at: 0)
