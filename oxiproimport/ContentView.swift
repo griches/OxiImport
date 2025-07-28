@@ -6,19 +6,258 @@
 //
 
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct ContentView: View {
+    @StateObject private var healthKitManager = HealthKitManager()
+    @StateObject private var historyManager = ImportHistoryManager()
+    @EnvironmentObject var fileHandler: IncomingFileHandler
+    @State private var showingImporter = false
+    @State private var showingAlert = false
+    @State private var alertMessage = ""
+    @State private var isImporting = false
+    @State private var importProgress: Double = 0
+    @State private var parsedReadings: [BloodPressureReading] = []
+    @State private var showingImportPreview = false
+    @State private var showingHistory = false
+    @State private var currentFileName = ""
+    
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        NavigationView {
+            VStack(spacing: 20) {
+                if !healthKitManager.isAuthorized {
+                    HealthKitAuthorizationView(healthKitManager: healthKitManager)
+                } else {
+                    importSection
+                    
+                    if !parsedReadings.isEmpty {
+                        recentReadingsSection
+                    }
+                }
+            }
+            .padding()
+            .navigationTitle("OxiPro Import")
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: {
+                        showingHistory = true
+                    }) {
+                        Image(systemName: "clock.arrow.circlepath")
+                    }
+                }
+            }
+            .fileImporter(
+                isPresented: $showingImporter,
+                allowedContentTypes: [.commaSeparatedText],
+                allowsMultipleSelection: false
+            ) { result in
+                handleFileImport(result)
+            }
+            .alert("Import Status", isPresented: $showingAlert) {
+                Button("OK") { }
+            } message: {
+                Text(alertMessage)
+            }
+            .sheet(isPresented: $showingImportPreview) {
+                ImportPreviewView(
+                    readings: parsedReadings,
+                    healthKitManager: healthKitManager,
+                    onImportComplete: { success, message in
+                        showingImportPreview = false
+                        alertMessage = message
+                        showingAlert = true
+                        
+                        historyManager.addRecord(
+                            fileName: currentFileName,
+                            readings: parsedReadings,
+                            success: success,
+                            error: success ? nil : message
+                        )
+                        
+                        if success {
+                            parsedReadings.removeAll()
+                        }
+                    }
+                )
+            }
+            .sheet(isPresented: $showingHistory) {
+                ImportHistoryView(historyManager: historyManager)
+            }
+        }
+        .onAppear {
+            checkForIncomingFile()
+        }
+        .onChange(of: fileHandler.hasIncomingFile) { _ in
+            checkForIncomingFile()
+        }
+    }
+    
+    private var importSection: some View {
+        VStack(spacing: 16) {
+            Text("Import Blood Pressure Data")
+                .font(.headline)
+            
+            Text("Import CSV files from your OxiPro BP2 monitor to save readings to Apple Health")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+            
+            Button(action: {
+                showingImporter = true
+            }) {
+                Label("Import CSV File", systemImage: "doc.badge.plus")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+            .disabled(isImporting)
+            
+            if isImporting {
+                ProgressView(value: importProgress) {
+                    Text("Importing...")
+                }
+            }
         }
         .padding()
+        .background(Color(.systemGray6))
+        .cornerRadius(12)
+    }
+    
+    private var recentReadingsSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Parsed Readings (\(parsedReadings.count))")
+                .font(.headline)
+            
+            ScrollView {
+                VStack(spacing: 8) {
+                    ForEach(parsedReadings.prefix(5)) { reading in
+                        HStack {
+                            VStack(alignment: .leading) {
+                                Text(reading.dateTimeString)
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                Text(reading.bloodPressureString)
+                                    .font(.title3)
+                                    .fontWeight(.semibold)
+                            }
+                            
+                            Spacer()
+                            
+                            if let _ = reading.pulse {
+                                VStack(alignment: .trailing) {
+                                    Text("Pulse")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                    Text(reading.pulseString)
+                                        .font(.callout)
+                                }
+                            }
+                        }
+                        .padding()
+                        .background(Color(.systemGray6))
+                        .cornerRadius(8)
+                    }
+                }
+            }
+            .frame(maxHeight: 300)
+            
+            Button("Import All to Health") {
+                showingImportPreview = true
+            }
+            .buttonStyle(.borderedProminent)
+            .frame(maxWidth: .infinity)
+        }
+    }
+    
+    private func handleFileImport(_ result: Result<[URL], Error>) {
+        switch result {
+        case .success(let urls):
+            guard let url = urls.first else { return }
+            
+            isImporting = true
+            importProgress = 0
+            
+            Task {
+                do {
+                    // Start accessing security-scoped resource
+                    guard url.startAccessingSecurityScopedResource() else {
+                        await MainActor.run {
+                            self.isImporting = false
+                            self.alertMessage = "Failed to access file: Permission denied"
+                            self.showingAlert = true
+                        }
+                        return
+                    }
+                    
+                    defer {
+                        url.stopAccessingSecurityScopedResource()
+                    }
+                    
+                    let data = try Data(contentsOf: url)
+                    let readings = try CSVParser.parse(csvData: data)
+                    
+                    await MainActor.run {
+                        self.parsedReadings = readings
+                        self.isImporting = false
+                        self.currentFileName = url.lastPathComponent
+                        
+                        if readings.isEmpty {
+                            alertMessage = "No valid readings found in the CSV file"
+                            showingAlert = true
+                        } else {
+                            showingImportPreview = true
+                        }
+                    }
+                } catch {
+                    await MainActor.run {
+                        self.isImporting = false
+                        self.alertMessage = "Failed to parse CSV: \(error.localizedDescription)"
+                        self.showingAlert = true
+                    }
+                }
+            }
+            
+        case .failure(let error):
+            alertMessage = "Failed to import file: \(error.localizedDescription)"
+            showingAlert = true
+        }
+    }
+    
+    private func checkForIncomingFile() {
+        guard fileHandler.hasIncomingFile,
+              let url = fileHandler.incomingFileURL else { return }
+        
+        fileHandler.clearIncomingFile()
+        
+        Task {
+            do {
+                // For copied files in documents directory, no security scoping needed
+                let data = try Data(contentsOf: url)
+                let readings = try CSVParser.parse(csvData: data)
+                
+                await MainActor.run {
+                    self.parsedReadings = readings
+                    self.currentFileName = url.lastPathComponent
+                    if readings.isEmpty {
+                        alertMessage = "No valid readings found in the CSV file"
+                        showingAlert = true
+                    } else {
+                        showingImportPreview = true
+                    }
+                }
+                
+                // Clean up the copied file
+                try? FileManager.default.removeItem(at: url)
+            } catch {
+                await MainActor.run {
+                    self.alertMessage = "Failed to parse CSV: \(error.localizedDescription)"
+                    self.showingAlert = true
+                }
+            }
+        }
     }
 }
 
 #Preview {
     ContentView()
+        .environmentObject(IncomingFileHandler())
 }
