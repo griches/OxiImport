@@ -255,6 +255,11 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Oxi Import";
+				INFOPLIST_KEY_CFBundleDocumentTypes = "{\n    CFBundleTypeName = \"Comma-Separated Values\";\n    CFBundleTypeRole = Editor;\n    LSHandlerRank = Default;\n    LSItemContentTypes =     (\n        \"public.comma-separated-values-text\"\n    );\n}";
+				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = NO;
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "This app reads health data to display your imported blood pressure readings.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "This app saves blood pressure and heart rate data from your OxiPro BP2 CSV files to Apple Health.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -265,19 +270,6 @@
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_NSHealthShareUsageDescription = "This app reads health data to display your imported blood pressure readings.";
-				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "This app saves blood pressure and heart rate data from your OxiPro BP2 CSV files to Apple Health.";
-				INFOPLIST_KEY_CFBundleDocumentTypes = (
-					{
-						CFBundleTypeName = "Comma-Separated Values";
-						LSItemContentTypes = (
-							"public.comma-separated-values-text"
-						);
-						CFBundleTypeRole = "Editor";
-						LSHandlerRank = "Default";
-					}
-				);
-				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = NO;
 				INFOPLIST_KEY_UISupportsDocumentBrowser = NO;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
@@ -314,6 +306,11 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Oxi Import";
+				INFOPLIST_KEY_CFBundleDocumentTypes = "{\n    CFBundleTypeName = \"Comma-Separated Values\";\n    CFBundleTypeRole = Editor;\n    LSHandlerRank = Default;\n    LSItemContentTypes =     (\n        \"public.comma-separated-values-text\"\n    );\n}";
+				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = NO;
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "This app reads health data to display your imported blood pressure readings.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "This app saves blood pressure and heart rate data from your OxiPro BP2 CSV files to Apple Health.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -324,19 +321,6 @@
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_NSHealthShareUsageDescription = "This app reads health data to display your imported blood pressure readings.";
-				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "This app saves blood pressure and heart rate data from your OxiPro BP2 CSV files to Apple Health.";
-				INFOPLIST_KEY_CFBundleDocumentTypes = (
-					{
-						CFBundleTypeName = "Comma-Separated Values";
-						LSItemContentTypes = (
-							"public.comma-separated-values-text"
-						);
-						CFBundleTypeRole = "Editor";
-						LSHandlerRank = "Default";
-					}
-				);
-				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = NO;
 				INFOPLIST_KEY_UISupportsDocumentBrowser = NO;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";

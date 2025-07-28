@@ -99,7 +99,7 @@ struct ContentView: View {
                 .fontWeight(.medium)
                 .foregroundColor(.primary)
             
-            Text("Import CSV files from your OxiPro BP2 monitor to save readings to Apple Health")
+            Text("Import CSV files from your OxiPro BP2 monitor to save readings to Apple Health.")
                 .font(.body)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)

@@ -41,6 +41,7 @@ struct HealthKitAuthorizationView: View {
                         .frame(width: 20)
                     Text("Blood Pressure (Systolic/Diastolic)")
                         .foregroundColor(.primary)
+                    Spacer()
                 }
                 
                 HStack(spacing: 12) {
@@ -49,6 +50,7 @@ struct HealthKitAuthorizationView: View {
                         .frame(width: 20)
                     Text("Heart Rate")
                         .foregroundColor(.primary)
+                    Spacer()
                 }
                 
                 HStack(spacing: 12) {
@@ -57,9 +59,11 @@ struct HealthKitAuthorizationView: View {
                         .frame(width: 20)
                     Text("Irregular Rhythm Notifications")
                         .foregroundColor(.primary)
+                    Spacer()
                 }
             }
             .padding(24)
+            .frame(maxWidth: .infinity, alignment: .leading)
             .background(
                 RoundedRectangle(cornerRadius: 16)
                     .fill(Color(.secondarySystemBackground))
@@ -97,7 +101,6 @@ struct HealthKitAuthorizationView: View {
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 8)
         }
-        .padding(24)
         .alert("Authorization Error", isPresented: $showingError) {
             Button("OK") { }
         } message: {
