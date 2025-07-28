@@ -10,9 +10,22 @@
 		B19C8FCF2E377C2300E7D798 /* oxiproimport.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = oxiproimport.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		B16688732E37D4A600326706 /* Exceptions for "oxiproimport" folder in "oxiproimport" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = B19C8FCE2E377C2300E7D798 /* oxiproimport */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		B19C8FD12E377C2300E7D798 /* oxiproimport */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				B16688732E37D4A600326706 /* Exceptions for "oxiproimport" folder in "oxiproimport" target */,
+			);
 			path = oxiproimport;
 			sourceTree = "<group>";
 		};
@@ -255,6 +268,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = oxiproimport/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Oxi Import";
 				INFOPLIST_KEY_CFBundleDocumentTypes = "(\n    {\n        CFBundleTypeName = \"CSV Files\";\n        CFBundleTypeRole = Editor;\n        LSHandlerRank = Default;\n        LSItemContentTypes = (\n            \"public.comma-separated-values-text\",\n            \"public.delimited-values-text\",\n            \"com.microsoft.excel.csv\",\n            \"public.text\"\n        );\n        CFBundleTypeExtensions = (\n            csv\n        );\n    }\n)";
 				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
@@ -306,6 +320,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = oxiproimport/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Oxi Import";
 				INFOPLIST_KEY_CFBundleDocumentTypes = "(\n    {\n        CFBundleTypeName = \"CSV Files\";\n        CFBundleTypeRole = Editor;\n        LSHandlerRank = Default;\n        LSItemContentTypes = (\n            \"public.comma-separated-values-text\",\n            \"public.delimited-values-text\",\n            \"com.microsoft.excel.csv\",\n            \"public.text\"\n        );\n        CFBundleTypeExtensions = (\n            csv\n        );\n    }\n)";
 				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
