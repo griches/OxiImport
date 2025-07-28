@@ -32,17 +32,23 @@ struct ContentView: View {
                     
                     if !parsedReadings.isEmpty {
                         recentReadingsSection
+                    } else if !historyManager.records.isEmpty {
+                        importHistorySection
+                    } else {
+                        emptyStateSection
                     }
                 }
             }
             .padding()
             .navigationTitle("OxiPro Import")
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: {
-                        showingHistory = true
-                    }) {
-                        Image(systemName: "clock.arrow.circlepath")
+                if !historyManager.records.isEmpty {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button(action: {
+                            showingHistory = true
+                        }) {
+                            Image(systemName: "clock.arrow.circlepath")
+                        }
                     }
                 }
             }
@@ -166,6 +172,98 @@ struct ContentView: View {
             .buttonStyle(.borderedProminent)
             .frame(maxWidth: .infinity)
         }
+    }
+    
+    private var importHistorySection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("Recent Imports")
+                    .font(.headline)
+                
+                Spacer()
+                
+                Button("View All") {
+                    showingHistory = true
+                }
+                .font(.caption)
+                .foregroundColor(.accentColor)
+            }
+            
+            ScrollView {
+                VStack(spacing: 8) {
+                    ForEach(historyManager.records.prefix(5)) { record in
+                        HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(record.fileName)
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
+                                    .lineLimit(1)
+                                
+                                Text(record.importDateString)
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                
+                                HStack(spacing: 12) {
+                                    Label("\(record.readingsCount) readings", systemImage: "doc.text")
+                                        .font(.caption2)
+                                        .foregroundColor(.secondary)
+                                    
+                                    if record.dateRange != "N/A" {
+                                        Label(record.dateRange, systemImage: "calendar")
+                                            .font(.caption2)
+                                            .foregroundColor(.secondary)
+                                    }
+                                }
+                            }
+                            
+                            Spacer()
+                            
+                            Image(systemName: record.success ? "checkmark.circle.fill" : "xmark.circle.fill")
+                                .foregroundColor(record.success ? .green : .red)
+                                .imageScale(.medium)
+                        }
+                        .padding(.vertical, 8)
+                        .padding(.horizontal, 12)
+                        .background(Color(.systemGray6))
+                        .cornerRadius(8)
+                        
+                        if let error = record.errorMessage {
+                            Text(error)
+                                .font(.caption2)
+                                .foregroundColor(.red)
+                                .padding(.horizontal, 12)
+                                .padding(.bottom, 4)
+                        }
+                    }
+                }
+            }
+            .frame(maxHeight: 300)
+        }
+        .padding()
+        .background(Color(.systemGray6))
+        .cornerRadius(12)
+    }
+    
+    private var emptyStateSection: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "doc.text.below.ecg")
+                .font(.system(size: 50))
+                .foregroundColor(.secondary)
+                .padding()
+            
+            Text("No Import History Yet")
+                .font(.title3)
+                .fontWeight(.medium)
+            
+            Text("Import your first CSV file from the OxiPro BP2 monitor to get started. You can either use the import button above or share CSV files directly to this app.")
+                .font(.body)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal)
+        }
+        .padding()
+        .background(Color(.systemGray6))
+        .cornerRadius(12)
     }
     
     private func handleFileImport(_ result: Result<[URL], Error>) {
