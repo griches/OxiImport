@@ -23,35 +23,29 @@ struct ContentView: View {
     @State private var currentFileName = ""
     
     var body: some View {
-        NavigationView {
-            VStack(spacing: 20) {
-                if !healthKitManager.isAuthorized {
-                    HealthKitAuthorizationView(healthKitManager: healthKitManager)
-                } else {
-                    importSection
-                    
-                    if !parsedReadings.isEmpty {
-                        recentReadingsSection
-                    } else if !historyManager.records.isEmpty {
-                        importHistorySection
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: 24) {
+                    if !healthKitManager.isAuthorized {
+                        HealthKitAuthorizationView(healthKitManager: healthKitManager)
                     } else {
-                        emptyStateSection
-                    }
-                }
-            }
-            .padding()
-            .navigationTitle("OxiPro Import")
-            .toolbar {
-                if !historyManager.records.isEmpty {
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        Button(action: {
-                            showingHistory = true
-                        }) {
-                            Image(systemName: "clock.arrow.circlepath")
+                        importSection
+                        
+                        if !parsedReadings.isEmpty {
+                            recentReadingsSection
+                        } else if !historyManager.records.isEmpty {
+                            importHistorySection
+                        } else {
+                            emptyStateSection
                         }
                     }
                 }
+                .padding(.horizontal, 20)
+                .padding(.top, 20)
+                .padding(.bottom, 40)
             }
+            .navigationBarHidden(true)
+            .background(Color(.systemBackground).ignoresSafeArea())
             .fileImporter(
                 isPresented: $showingImporter,
                 allowedContentTypes: [.commaSeparatedText],
@@ -99,33 +93,55 @@ struct ContentView: View {
     }
     
     private var importSection: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 20) {
             Text("Import Blood Pressure Data")
-                .font(.headline)
+                .font(.title2)
+                .fontWeight(.medium)
+                .foregroundColor(.primary)
             
             Text("Import CSV files from your OxiPro BP2 monitor to save readings to Apple Health")
-                .font(.subheadline)
+                .font(.body)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
+                .lineLimit(nil)
             
             Button(action: {
                 showingImporter = true
             }) {
-                Label("Import CSV File", systemImage: "doc.badge.plus")
-                    .frame(maxWidth: .infinity)
+                HStack(spacing: 12) {
+                    Image(systemName: "doc.badge.plus")
+                        .font(.title3)
+                    Text("Import CSV File")
+                        .font(.headline)
+                }
+                .frame(maxWidth: .infinity, minHeight: 54)
+                .foregroundColor(.white)
             }
-            .buttonStyle(.borderedProminent)
+            .background(
+                LinearGradient(
+                    gradient: Gradient(colors: [Color.blue, Color.blue.opacity(0.8)]),
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+            )
             .disabled(isImporting)
+            .cornerRadius(12)
             
             if isImporting {
-                ProgressView(value: importProgress) {
+                VStack(spacing: 8) {
+                    ProgressView(value: importProgress)
+                        .progressViewStyle(LinearProgressViewStyle(tint: .blue))
                     Text("Importing...")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
                 }
             }
         }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
+        .padding(24)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color(.secondarySystemBackground))
+        )
     }
     
     private var recentReadingsSection: some View {
@@ -160,7 +176,7 @@ struct ContentView: View {
                         }
                         .padding()
                         .background(Color(.systemGray6))
-                        .cornerRadius(8)
+                        .cornerRadius(6)
                     }
                 }
             }
@@ -170,7 +186,8 @@ struct ContentView: View {
                 showingImportPreview = true
             }
             .buttonStyle(.borderedProminent)
-            .frame(maxWidth: .infinity)
+            .frame(maxWidth: .infinity, minHeight: 50)
+            .cornerRadius(8)
         }
     }
     
@@ -225,7 +242,7 @@ struct ContentView: View {
                         .padding(.vertical, 8)
                         .padding(.horizontal, 12)
                         .background(Color(.systemGray6))
-                        .cornerRadius(8)
+                        .cornerRadius(6)
                         
                         if let error = record.errorMessage {
                             Text(error)
@@ -241,29 +258,32 @@ struct ContentView: View {
         }
         .padding()
         .background(Color(.systemGray6))
-        .cornerRadius(12)
+        .cornerRadius(8)
     }
     
     private var emptyStateSection: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 20) {
             Image(systemName: "doc.text.below.ecg")
-                .font(.system(size: 50))
+                .font(.system(size: 60))
                 .foregroundColor(.secondary)
-                .padding()
+                .padding(.top, 8)
             
             Text("No Import History Yet")
-                .font(.title3)
+                .font(.title2)
                 .fontWeight(.medium)
+                .foregroundColor(.primary)
             
             Text("Import your first CSV file from the OxiPro BP2 monitor to get started. You can either use the import button above or share CSV files directly to this app.")
                 .font(.body)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
-                .padding(.horizontal)
+                .lineLimit(nil)
         }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
+        .padding(24)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color(.secondarySystemBackground))
+        )
     }
     
     private func handleFileImport(_ result: Result<[URL], Error>) {

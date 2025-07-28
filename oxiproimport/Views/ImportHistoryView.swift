@@ -14,7 +14,7 @@ struct ImportHistoryView: View {
     @State private var showingClearConfirmation = false
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             Group {
                 if historyManager.records.isEmpty {
                     emptyHistoryView
