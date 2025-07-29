@@ -9,6 +9,12 @@ import Foundation
 import HealthKit
 import Combine
 
+struct ExistingReading: Hashable, Sendable {
+    let date: Date
+    let systolic: Int
+    let diastolic: Int
+}
+
 class HealthKitManager: ObservableObject {
     private let healthStore = HKHealthStore()
     @Published var isAuthorized = false
@@ -71,7 +77,13 @@ class HealthKitManager: ObservableObject {
             heartRateType
         ]
         
-        try await healthStore.requestAuthorization(toShare: typesToWrite, read: [])
+        // Also request read permissions for duplicate detection
+        let typesToRead: Set<HKObjectType> = [
+            bloodPressureType,
+            heartRateType
+        ]
+        
+        try await healthStore.requestAuthorization(toShare: typesToWrite, read: typesToRead)
         
         // Check the actual authorization status after request
         checkAuthorizationStatus()
@@ -121,16 +133,90 @@ class HealthKitManager: ObservableObject {
         }
     }
     
-    func saveMultipleReadings(_ readings: [BloodPressureReading], progress: @escaping (Double) -> Void) async throws {
+    func saveMultipleReadings(_ readings: [BloodPressureReading], progress: @escaping (Double) -> Void) async throws -> (imported: Int, skipped: Int) {
+        guard !readings.isEmpty else {
+            return (imported: 0, skipped: 0)
+        }
+        
+        // Find date range for query
+        let dates = readings.map { $0.date }
+        guard let startDate = dates.min(),
+              let endDate = dates.max() else {
+            return (imported: 0, skipped: 0)
+        }
+        
+        // Add buffer to date range to ensure we catch all potential duplicates
+        let queryStartDate = startDate.addingTimeInterval(-60) // 1 minute before
+        let queryEndDate = endDate.addingTimeInterval(60) // 1 minute after
+        
+        // Query existing readings
+        let existingReadings = try await queryBloodPressureReadings(from: queryStartDate, to: queryEndDate)
+        
         let total = Double(readings.count)
         var completed = 0.0
+        var imported = 0
+        var skipped = 0
         
         for reading in readings {
-            try await saveBloodPressureReading(reading)
+            let existingReading = ExistingReading(
+                date: reading.date,
+                systolic: reading.systolic,
+                diastolic: reading.diastolic
+            )
+            
+            if existingReadings.contains(existingReading) {
+                // Skip duplicate
+                skipped += 1
+            } else {
+                // Import new reading
+                try await saveBloodPressureReading(reading)
+                imported += 1
+            }
+            
             completed += 1
             await MainActor.run {
                 progress(completed / total)
             }
+        }
+        
+        return (imported: imported, skipped: skipped)
+    }
+    
+    func queryBloodPressureReadings(from startDate: Date, to endDate: Date) async throws -> Set<ExistingReading> {
+        return try await withCheckedThrowingContinuation { continuation in
+            let predicate = HKQuery.predicateForSamples(withStart: startDate, end: endDate, options: .strictStartDate)
+            let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: false)
+            
+            let query = HKSampleQuery(sampleType: bloodPressureType, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: [sortDescriptor]) { _, samples, error in
+                if let error = error {
+                    continuation.resume(throwing: error)
+                    return
+                }
+                
+                var existingReadings = Set<ExistingReading>()
+                
+                if let correlations = samples as? [HKCorrelation] {
+                    for correlation in correlations {
+                        if let systolicSample = correlation.objects(for: self.systolicType).first as? HKQuantitySample,
+                           let diastolicSample = correlation.objects(for: self.diastolicType).first as? HKQuantitySample {
+                            
+                            let systolic = Int(systolicSample.quantity.doubleValue(for: .millimeterOfMercury()))
+                            let diastolic = Int(diastolicSample.quantity.doubleValue(for: .millimeterOfMercury()))
+                            
+                            let reading = ExistingReading(
+                                date: correlation.startDate,
+                                systolic: systolic,
+                                diastolic: diastolic
+                            )
+                            existingReadings.insert(reading)
+                        }
+                    }
+                }
+                
+                continuation.resume(returning: existingReadings)
+            }
+            
+            healthStore.execute(query)
         }
     }
 }
