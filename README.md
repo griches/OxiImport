@@ -101,6 +101,24 @@ xcodebuild test -project oxiproimport.xcodeproj -scheme oxiproimport -destinatio
 
 This project is open source. Feel free to use, modify, and distribute as needed.
 
+## Version History
+
+### v1.1 (2025-07-29)
+- **Duplicate Detection**: Automatically detects and skips duplicate readings when importing
+- **Visual Indicators**: Shows which readings are duplicates in the import preview
+- **Import Statistics**: Displays count of new readings imported vs duplicates skipped
+- **HealthKit Read Access**: Added read permissions to check for existing data
+- **Improved User Experience**: Cleaner imports without duplicate entries
+
+### v1.0 (2025-07-29)
+- **Initial Release**: Core CSV import functionality
+- **Apple Health Integration**: Direct import to HealthKit
+- **Share Sheet Support**: Import files from any app
+- **Multi-Platform**: Support for iPhone, iPad, Mac, and Vision Pro
+- **Import History**: Track all your imports
+- **BOM Support**: Handles CSV files with Byte Order Mark
+- **Privacy-Focused**: All processing happens locally
+
 ## Disclaimer
 
 This app is not affiliated with OxiPro or any blood pressure monitor manufacturer. Always consult with healthcare professionals regarding your blood pressure readings and health data.
