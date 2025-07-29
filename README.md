@@ -1,4 +1,4 @@
-# OxiPro Import
+# Oxi Import
 
 A free SwiftUI app for importing blood pressure data from OxiPro BP2 CSV files directly into Apple Health, bypassing subscription requirements.
 
@@ -14,7 +14,7 @@ A free SwiftUI app for importing blood pressure data from OxiPro BP2 CSV files d
 ## How It Works
 
 1. Export CSV files from your OxiPro BP2 blood pressure monitor using [Health Diary by MedM](https://apps.apple.com/gb/app/health-diary-by-medm/id929581952)
-2. Share the CSV file to OxiPro Import or use the in-app file picker
+2. Share the CSV file to Oxi Import or use the in-app file picker
 3. Preview your readings before importing
 4. Import directly to Apple Health with one tap
 
