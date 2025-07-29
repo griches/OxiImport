@@ -51,19 +51,6 @@ The app expects CSV files with the following columns:
 2. Open `oxiproimport.xcodeproj` in Xcode
 3. Build and run on your device
 
-## Building
-
-```bash
-# Build for iOS Simulator
-xcodebuild -project oxiproimport.xcodeproj -scheme oxiproimport -destination 'platform=iOS Simulator,name=iPhone 16' build
-
-# Build for macOS
-xcodebuild -project oxiproimport.xcodeproj -scheme oxiproimport -destination 'platform=macOS' build
-
-# Run tests
-xcodebuild test -project oxiproimport.xcodeproj -scheme oxiproimport -destination 'platform=iOS Simulator,name=iPhone 16'
-```
-
 ## Privacy & Security
 
 - **Local Processing**: All CSV parsing and data processing happens locally on your device
