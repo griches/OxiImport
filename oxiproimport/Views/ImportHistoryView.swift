@@ -12,6 +12,7 @@ struct ImportHistoryView: View {
     @ObservedObject var historyManager: ImportHistoryManager
     @Environment(\.dismiss) private var dismiss
     @State private var showingClearSheet = false
+    @State private var selectedRecord: ImportRecord?
     
     var body: some View {
         NavigationStack {
@@ -51,6 +52,9 @@ struct ImportHistoryView: View {
                     }
                 )
             }
+            .sheet(item: $selectedRecord) { record in
+                ReportShareView(record: record)
+            }
         }
     }
     
@@ -73,42 +77,56 @@ struct ImportHistoryView: View {
     
     private var historyList: some View {
         List(historyManager.records) { record in
-            VStack(alignment: .leading, spacing: 8) {
-                HStack {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(record.fileName)
-                            .font(.headline)
-                            .lineLimit(1)
+            HStack {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(record.fileName)
+                                .font(.headline)
+                                .lineLimit(1)
+                            
+                            Text(record.importDateString)
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
                         
-                        Text(record.importDateString)
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                        Spacer()
+                        
+                        Image(systemName: record.success ? "checkmark.circle.fill" : "xmark.circle.fill")
+                            .foregroundColor(record.success ? .green : .red)
+                            .imageScale(.large)
                     }
                     
-                    Spacer()
-                    
-                    Image(systemName: record.success ? "checkmark.circle.fill" : "xmark.circle.fill")
-                        .foregroundColor(record.success ? .green : .red)
-                        .imageScale(.large)
-                }
-                
-                HStack(spacing: 16) {
-                    Label("\(record.readingsCount) readings", systemImage: "doc.text")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    
-                    if record.dateRange != "N/A" {
-                        Label(record.dateRange, systemImage: "calendar")
+                    HStack(spacing: 16) {
+                        Label("\(record.readingsCount) readings", systemImage: "doc.text")
                             .font(.caption)
                             .foregroundColor(.secondary)
+                        
+                        if record.dateRange != "N/A" {
+                            Label(record.dateRange, systemImage: "calendar")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    
+                    if let error = record.errorMessage {
+                        Text(error)
+                            .font(.caption)
+                            .foregroundColor(.red)
+                            .lineLimit(2)
                     }
                 }
                 
-                if let error = record.errorMessage {
-                    Text(error)
-                        .font(.caption)
-                        .foregroundColor(.red)
-                        .lineLimit(2)
+                if record.success && record.readings != nil {
+                    Button(action: {
+                        selectedRecord = record
+                    }) {
+                        Image(systemName: "square.and.arrow.up")
+                            .foregroundColor(.accentColor)
+                            .imageScale(.large)
+                            .frame(width: 44, height: 44)
+                    }
+                    .buttonStyle(PlainButtonStyle())
                 }
             }
             .padding(.vertical, 4)

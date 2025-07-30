@@ -90,12 +90,13 @@ This project is open source. Feel free to use, modify, and distribute as needed.
 
 ## Version History
 
-### v1.1 (2025-07-29)
-- **Duplicate Detection**: Automatically detects and skips duplicate readings when importing
-- **Visual Indicators**: Shows which readings are duplicates in the import preview
-- **Import Statistics**: Displays count of new readings imported vs duplicates skipped
-- **HealthKit Read Access**: Added read permissions to check for existing data
-- **Improved User Experience**: Cleaner imports without duplicate entries
+### v1.1 (2025-07-30)
+- **Report Generation**: Generate professional blood pressure reports for healthcare providers
+- **Share Reports**: Share blood pressure data via email, Messages, or save to Files
+- **Patient Name Support**: Optionally include patient name in generated reports
+- **Report Statistics**: Automatic calculation of average, min, and max values
+- **Enhanced Import History**: Added share button to each successful import for easy report generation
+- **Improved UI**: Share button design matches grant access button with gradient styling
 
 ### v1.0 (2025-07-29)
 - **Initial Release**: Core CSV import functionality

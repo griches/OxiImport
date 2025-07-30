@@ -16,6 +16,7 @@ struct ImportPreviewView: View {
     @State private var importProgress: Double = 0
     @State private var duplicateCheckResults: Set<ExistingReading>?
     @State private var isCheckingDuplicates = false
+    @State private var showingShareSheet = false
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
@@ -41,7 +42,14 @@ struct ImportPreviewView: View {
                     .fontWeight(.medium)
                 }
                 
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItemGroup(placement: .navigationBarTrailing) {
+                    Button(action: {
+                        showingShareSheet = true
+                    }) {
+                        Image(systemName: "square.and.arrow.up")
+                    }
+                    .disabled(isImporting || isCheckingDuplicates)
+                    
                     Button("Import") {
                         startImport()
                     }
@@ -51,6 +59,17 @@ struct ImportPreviewView: View {
             }
             .task {
                 await checkForDuplicates()
+            }
+            .sheet(isPresented: $showingShareSheet) {
+                ReportShareView(record: ImportRecord(
+                    fileName: "Current Import",
+                    importDate: Date(),
+                    readingsCount: readings.count,
+                    dateRange: dateRangeText(from: readings.last?.date ?? Date(), to: readings.first?.date ?? Date()),
+                    success: true,
+                    errorMessage: nil,
+                    readings: readings
+                ))
             }
         }
     }
