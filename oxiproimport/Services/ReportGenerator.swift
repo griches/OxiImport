@@ -58,7 +58,7 @@ class ReportGenerator {
             report += "  Device: \(reading.source)\n\n"
         }
         
-        report += "\nNote: This report is generated from imported OxiPro BP2 data.\n"
+        report += "\nNote: This report is generated from your imported blood pressure monitor's CSV export.\n"
         report += "Please consult with your healthcare provider for medical advice.\n"
         
         return report

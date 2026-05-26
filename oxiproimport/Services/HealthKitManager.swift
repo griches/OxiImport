@@ -77,9 +77,12 @@ class HealthKitManager: ObservableObject {
             heartRateType
         ]
         
-        // Also request read permissions for duplicate detection
+        // Also request read permissions for duplicate detection.
+        // Note: HKCorrelationType for blood pressure cannot be requested for reading directly —
+        // authorize the component quantity types instead.
         let typesToRead: Set<HKObjectType> = [
-            bloodPressureType,
+            systolicType,
+            diastolicType,
             heartRateType
         ]
         
@@ -182,6 +185,72 @@ class HealthKitManager: ObservableObject {
         return (imported: imported, skipped: skipped)
     }
     
+    func fetchAllReadings(from startDate: Date, to endDate: Date) async throws -> [BloodPressureReading] {
+        async let heartRateByDate: [Date: Int] = fetchHeartRatesByStartDate(from: startDate, to: endDate)
+        async let correlations: [HKCorrelation] = fetchBloodPressureCorrelations(from: startDate, to: endDate)
+
+        let rates = try await heartRateByDate
+        let bpSamples = try await correlations
+
+        return bpSamples.compactMap { correlation -> BloodPressureReading? in
+            guard let systolicSample = correlation.objects(for: self.systolicType).first as? HKQuantitySample,
+                  let diastolicSample = correlation.objects(for: self.diastolicType).first as? HKQuantitySample else {
+                return nil
+            }
+
+            let systolic = Int(systolicSample.quantity.doubleValue(for: .millimeterOfMercury()))
+            let diastolic = Int(diastolicSample.quantity.doubleValue(for: .millimeterOfMercury()))
+            let source = (correlation.metadata?["Source"] as? String)
+                ?? correlation.sourceRevision.source.name
+
+            return BloodPressureReading(
+                date: correlation.startDate,
+                systolic: systolic,
+                diastolic: diastolic,
+                pulse: rates[correlation.startDate],
+                irregularPulseDetected: false,
+                source: source
+            )
+        }
+        .sorted { $0.date > $1.date }
+    }
+
+    private func fetchBloodPressureCorrelations(from startDate: Date, to endDate: Date) async throws -> [HKCorrelation] {
+        try await withCheckedThrowingContinuation { continuation in
+            let predicate = HKQuery.predicateForSamples(withStart: startDate, end: endDate, options: .strictStartDate)
+            let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: false)
+            let query = HKSampleQuery(sampleType: bloodPressureType, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: [sortDescriptor]) { _, samples, error in
+                if let error = error {
+                    continuation.resume(throwing: error)
+                    return
+                }
+                continuation.resume(returning: (samples as? [HKCorrelation]) ?? [])
+            }
+            healthStore.execute(query)
+        }
+    }
+
+    private func fetchHeartRatesByStartDate(from startDate: Date, to endDate: Date) async throws -> [Date: Int] {
+        try await withCheckedThrowingContinuation { continuation in
+            let predicate = HKQuery.predicateForSamples(withStart: startDate, end: endDate, options: .strictStartDate)
+            let query = HKSampleQuery(sampleType: heartRateType, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: nil) { _, samples, error in
+                if let error = error {
+                    continuation.resume(throwing: error)
+                    return
+                }
+                var byDate: [Date: Int] = [:]
+                if let quantitySamples = samples as? [HKQuantitySample] {
+                    let unit = HKUnit.count().unitDivided(by: .minute())
+                    for sample in quantitySamples {
+                        byDate[sample.startDate] = Int(sample.quantity.doubleValue(for: unit))
+                    }
+                }
+                continuation.resume(returning: byDate)
+            }
+            healthStore.execute(query)
+        }
+    }
+
     func queryBloodPressureReadings(from startDate: Date, to endDate: Date) async throws -> Set<ExistingReading> {
         return try await withCheckedThrowingContinuation { continuation in
             let predicate = HKQuery.predicateForSamples(withStart: startDate, end: endDate, options: .strictStartDate)

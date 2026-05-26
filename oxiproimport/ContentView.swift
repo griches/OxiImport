@@ -20,6 +20,7 @@ struct ContentView: View {
     @State private var parsedReadings: [BloodPressureReading] = []
     @State private var showingImportPreview = false
     @State private var showingHistory = false
+    @State private var showingExport = false
     @State private var currentFileName = ""
     
     var body: some View {
@@ -44,7 +45,19 @@ struct ContentView: View {
                 .padding(.top, 20)
                 .padding(.bottom, 40)
             }
-            .navigationBarHidden(true)
+            .navigationTitle("Blood Pressure")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        showingExport = true
+                    } label: {
+                        Image(systemName: "square.and.arrow.up")
+                    }
+                    .disabled(!healthKitManager.isAuthorized)
+                    .accessibilityLabel("Export report")
+                }
+            }
             .background(Color(.systemBackground).ignoresSafeArea())
             .fileImporter(
                 isPresented: $showingImporter,
@@ -83,6 +96,9 @@ struct ContentView: View {
             .sheet(isPresented: $showingHistory) {
                 ImportHistoryView(historyManager: historyManager)
             }
+            .sheet(isPresented: $showingExport) {
+                ExportReportView(healthKitManager: healthKitManager)
+            }
         }
         .onAppear {
             checkForIncomingFile()
@@ -99,7 +115,7 @@ struct ContentView: View {
                 .fontWeight(.medium)
                 .foregroundColor(.primary)
             
-            Text("Import CSV files from your OxiPro BP2 monitor to save readings to Apple Health.")
+            Text("Import your blood pressure monitor's CSV export to save readings to Apple Health.")
                 .font(.body)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
@@ -267,28 +283,38 @@ struct ContentView: View {
     }
     
     private var emptyStateSection: some View {
-        VStack(spacing: 20) {
-            Image(systemName: "doc.text.below.ecg")
-                .font(.system(size: 60))
-                .foregroundColor(.secondary)
-                .padding(.top, 8)
-            
-            Text("No Import History Yet")
-                .font(.title2)
-                .fontWeight(.medium)
-                .foregroundColor(.primary)
-            
-            Text("Import your first CSV file from the OxiPro BP2 monitor to get started. You can either use the import button above or share CSV files directly to this app.")
-                .font(.body)
+        VStack(spacing: 16) {
+            VStack(spacing: 20) {
+                Image(systemName: "doc.text.below.ecg")
+                    .font(.system(size: 60))
+                    .foregroundColor(.secondary)
+                    .padding(.top, 8)
+
+                Text("No Import History Yet")
+                    .font(.title2)
+                    .fontWeight(.medium)
+                    .foregroundColor(.primary)
+
+                Text("Import your first CSV file from your blood pressure monitor's CSV export to get started. You can either use the import button above or share CSV files directly to this app.")
+                    .font(.body)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(nil)
+            }
+            .padding(24)
+            .frame(maxWidth: .infinity)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color(.secondarySystemBackground))
+            )
+
+            Text("This app is an independent third-party tool. It is not affiliated with, endorsed by, or sponsored by OxiPro Medical Ltd or the makers of the OxiPro BP2 device.")
+                .font(.footnote)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
                 .lineLimit(nil)
+                .padding(.horizontal, 8)
         }
-        .padding(24)
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color(.secondarySystemBackground))
-        )
     }
     
     private func handleFileImport(_ result: Result<[URL], Error>) {
